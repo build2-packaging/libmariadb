@@ -1,0 +1,39 @@
+# file      : build/bootstrap.build
+# copyright : Copyright (c) 2016-2017 Code Synthesis Ltd
+# license   : LGPLv2.1; see accompanying COPYING file
+
+project = libmariadb
+
+using version
+using config
+using dist
+using test
+using install
+
+# The MariaDB server and client library versions have the same
+# <major>.<minor>.<maintenance> form but do not correlate with each other. So,
+# for example, the server 10.2.10 is released with the client 3.0.2. See also:
+#
+# https://mariadb.com/sites/default/files/MariaDBCorporationEngineeringpolicies-v1.03.pdf
+#
+# Releasing the library with the upstream server version (as the major Linux
+# distributions do), we obtain the client version from the
+# CPACK_PACKAGE_VERSION_* variable values in libmariadb/CMakeLists.txt for each
+# package release. Also, while at it, check that the protocol version still
+# correct (PROTOCOL_VERSION variable),
+#
+# See also how Debian/Fedora package libmariadb if trying to wrap your head
+# around this mess.
+#
+if ($version.major == 10 && $version.minor == 2 && $version.patch == 10)
+{
+  client_major = 3
+  client_minor = 0
+  client_patch = 2
+
+  protocol_version = 10
+}
+else
+  fail "increment the ABI version?"
+
+abi_version = $client_major

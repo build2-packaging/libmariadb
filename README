@@ -1,0 +1,22 @@
+MariaDB is an open-source, multi-threaded, relational database management
+system  with libmariadb being its C library. Applications can use this library
+to pass queries to MariaDB and MySQL database servers, and to receive the
+results of those queries using the C programming language. For more information
+see:
+
+https://mariadb.com
+
+This package contains the original libmariadb library source code overlaid with
+the build2-based build system and packaged for the build2 package manager
+(bpkg).
+
+See the INSTALL file for the prerequisites and installation instructions.
+
+Send questions, bug reports, or any other feedback about the library itself to
+the MariaDB mailing lists. Send build system and packaging-related feedback to
+the packaging@build2.org mailing list (see https://lists.build2.org for posting
+guidelines, etc).
+
+The packaging of libmariadb for build2 is tracked in a Git repository at:
+
+https://git.build2.org/cgit/packaging/mariadb/

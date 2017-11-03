@@ -1,0 +1,20 @@
+# file      : tests/build/root.build
+# copyright : Copyright (c) 2016-2017 Code Synthesis Ltd
+# license   : LGPLv2.1; see accompanying COPYING file
+
+# Make sure libmariadb headers comply with an oldest C standard.
+#
+c.std = 90
+
+using c
+
+h{*}: extension = h
+c{*}: extension = c
+
+# Every exe{} in this subproject is by default a test.
+#
+exe{*}: test = true
+
+# Specify the test target for cross-testing.
+#
+test.target = $c.target
