@@ -126,8 +126,8 @@ if ($tclass == 'windows')
 # We have dropped the macro definitions that are not used in the package code:
 #
 #   -DHAVE_AUTH_CLEARTEXT=1 -DHAVE_AUTH_DIALOG=1 -DHAVE_AUTH_NATIVE=1
-#   -DHAVE_AUTH_OLDPASSWORD=1 -DLIBICONV_PLUG
-#   -DHAVE_AURORA=1 -DHAVE_REPLICATION=1 -DHAVE_TRACE_EXAMPLE=1
+#   -DHAVE_AUTH_OLDPASSWORD=1 -DHAVE_AURORA=1 -DHAVE_REPLICATION=1
+#   -DHAVE_TRACE_EXAMPLE=1
 #
 # Here are VC-specific macros dropped:
 #
@@ -136,12 +136,17 @@ if ($tclass == 'windows')
 #   /D HAVE_AUTH_GSSAPI_DYNAMIC=1 /D HAVE_DIALOG_DYNAMIC=1
 #   /D HAVE_SHA256PW_DYNAMIC=1 /D HAVE_CLEARTEXT_DYNAMIC=1 /D _WINDLL
 #
-# Also note that we add "-I$src_root" for the headers auto-generating machinery
-# to work properly.
+# Note that we add "-I$src_root" for the headers auto-generating machinery to
+# work properly.
+#
+# Also note that we add -DLIBICONV_PLUG not to let the GNU's libiconv header to
+# rename iconv*() functions to libiconv*(). Not doing so breaks the linkage
+# against non-GNU libc, implementing iconv API, if GNU libiconv is installed in
+# the system and its header is picked up instead of the system one.
 #
 mariadb_poptions = "-I$out_root" "-I$src_root" "-I$src_base"              \
                    -DHAVE_SOCKET=1 -DHAVE_COMPRESS -DENABLED_LOCAL_INFILE \
-                   -DLIBMARIADB -DTHREAD -DDBUG_OFF
+                   -DLIBMARIADB -DTHREAD -DLIBICONV_PLUG -DDBUG_OFF
 
 if ($tclass != 'windows')
 {
@@ -210,10 +215,16 @@ if ($tclass != 'windows')
     c.loptions += -compatibility_version "$abi_version.0.0" \
                   -current_version "$abi_version.0.0"
 
-  c.libs += ($tclass == 'linux' ? -lnsl : -liconv) -lpthread -lm
+  c.libs += -lpthread -lm
+
+  if ($tclass == 'linux')
+    c.libs += -lnsl
 
   if ($tclass != 'bsd')
     c.libs += -ldl
+
+  if ($tclass == 'macos')
+    c.libs += -liconv
 }
 else
 {
