@@ -181,9 +181,9 @@ zlib_poptions = "-I$src_base/zlib"
 # Note that the bundled win-iconv header is included as a quoted (relative)
 # path, so no need for -I option.
 #
-      zlib/obj{*}: c.poptions =+ $zlib_poptions
-   plugins/obj{*}: c.poptions =+ $mariadb_poptions
-libmariadb/obj{*}: c.poptions =+ $mariadb_poptions $zlib_poptions
+      zlib/: c.poptions =+ $zlib_poptions
+   plugins/: c.poptions =+ $mariadb_poptions
+libmariadb/: c.poptions =+ $mariadb_poptions $zlib_poptions
 
 if ($tsys == 'win32-msvc')
 {
