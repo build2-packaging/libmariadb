@@ -185,13 +185,13 @@ zlib_poptions = "-I$src_base/zlib"
    plugins/: c.poptions =+ $mariadb_poptions
 libmariadb/: c.poptions =+ $mariadb_poptions $zlib_poptions
 
-if ($tsys == 'win32-msvc')
+if ($c.class == 'msvc')
 {
   # Disable warnings that pop up with /W3.
   #
   c.coptions += /wd4996 /wd4267
 }
-else
+elif ($c.class == 'gcc')
 {
   # Disable all warnings. Upstream doesn't seem to care about these and it is
   # not easy to disable specific warnings in a way that works across
