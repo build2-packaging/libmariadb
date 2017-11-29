@@ -247,8 +247,8 @@ else
 #
 lib{mariadb}: c.export.poptions = "-I$out_root" "-I$src_root"
 
-# Let's install the bare minimum of headers: mysql/mysql.h and headers it
-# recursively includes.
+# Let's install the bare minimum of headers: mysql.h, errmsg.h, mysqld_error.h
+# and headers they recursively include.
 #
 # Note that we don't install dyncol and client plugin API headers. Including
 # them wouldn't work out of the box anyway, as they include prerequisite
@@ -260,7 +260,8 @@ h{*}: install = false
 
 # @@ Fix once LHS pair generation is implemented.
 #
-for h: mysql mariadb_com ma_list mariadb_ctype mariadb_stmt mariadb_version
+for h: mysql errmsg mysqld_error mariadb_version mariadb_com ma_list \
+       mariadb_ctype mariadb_stmt
   h{$h}@./: install = include/mysql/
 
 # Install into the mysql/ subdirectory of, say, /usr/include.
