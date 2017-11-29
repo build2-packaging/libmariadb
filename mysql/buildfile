@@ -233,13 +233,13 @@ else
 
   if ($tsys == 'mingw32')
   {
-    c.loptions += $def
     c.libs += $regex.apply($libs, '(.+)', '-l\1')
+    libs{mariadb}: c.libs =+ $def
   }
   else
   {
-    c.loptions += "/DEF:$def"
     c.libs += $regex.apply($libs, '(.+)', '\1.lib')
+    libs{mariadb}: c.libs =+ "/DEF:$def"
   }
 }
 
