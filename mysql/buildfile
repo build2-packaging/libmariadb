@@ -68,7 +68,7 @@ else
 #    Fedora/RHEL:    /var/lib/mysql/mysql.sock
 #    Source package: /tmp/mysql.sock
 #
-h{version}: in{version} $src_root/file{manifest}
+h{version}: in{version} $src_root/manifest
 
 h{version}: dist  = true
 h{version}: clean = ($src_root != $out_root)
@@ -95,11 +95,11 @@ h{version}: default_charset = ''
 h{version}: CC_SOURCE_REVISION = ''
 
 # @@ Here we generate files from the templates using the version file
-#    generating machinery (this is why the redundant $src_root/file{manifest}
+#    generating machinery (this is why the redundant $src_root/manifest
 #    prerequisite).
 #
 libmariadb/c{ma_client_plugin}: libmariadb/in{ma_client_plugin} \
-                                $src_root/file{manifest} # @@ TMP
+                                $src_root/manifest # @@ TMP
 libmariadb/c{ma_client_plugin}: in.symbol = '@'
 libmariadb/c{ma_client_plugin}: in.substitution = lax
 libmariadb/c{ma_client_plugin}: EXTERNAL_PLUGINS = ''
@@ -117,8 +117,8 @@ extern struct st_mysql_client_plugin $(p)_plugin;"
 
 if ($tclass == 'windows')
 {
-  libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32}           \
-                                 $src_root/file{manifest} # @@ TMP
+  libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32} \
+                                 $src_root/manifest # @@ TMP
   libmariadb/def{mariadbclient}: mariadb_deinitialize_ssl =                   \
                                  ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
 }
