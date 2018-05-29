@@ -1,6 +1,6 @@
 : 1
 name: libmariadb
-version: 10.2.10-a.0.z
+version: 10.2.10
 summary: MariaDB C API client library
 license: LGPLv2.1
 tags: mariadb, mysql, database, client, connector, library, c, api, interface
