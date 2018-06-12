@@ -2,9 +2,6 @@
 # copyright : Copyright (c) 2016-2018 Code Synthesis Ltd
 # license   : LGPLv2.1; see accompanying COPYING file
 
-define def: file
-def{*}: extension = def
-
 # Windows-specific named pipe and shared memory based communication plugins.
 #
 pvio_win32 = pvio/pvio_npipe pvio/pvio_shmem
@@ -28,6 +25,8 @@ if ($tclass == 'windows')
                   plugins/{  c    }{$pvio_win32  } \
                libmariadb/{    def}{mariadbclient} # Exports.
 else
+  # Include into the distribution.
+  #
   lib{mariadb}: win-iconv/file{*.h *.c                                  } \
                   plugins/file{$regex.apply($pvio_win32, '(.+)', '\1.c')} \
                libmariadb/file{mariadbclient_win32.def.in}
@@ -229,18 +228,11 @@ if ($tclass != 'windows')
 else
 {
   libs = ws2_32 shlwapi advapi32 version # secur32
-  def = $out_base/libmariadb/mariadbclient.def
 
   if ($tsys == 'mingw32')
-  {
     c.libs += $regex.apply($libs, '(.+)', '-l\1')
-    libs{mariadb}: c.libs =+ $def
-  }
   else
-  {
     c.libs += $regex.apply($libs, '(.+)', '\1.lib')
-    libs{mariadb}: c.libs =+ "/DEF:$def"
-  }
 }
 
 # The library clients must include the API header as <mysql/mysql.h>.
