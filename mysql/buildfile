@@ -216,8 +216,17 @@ if ($tclass != 'windows')
 
   c.libs += -lpthread -lm
 
-  if ($tclass == 'linux')
-    c.libs += -lnsl
+# Drop the redundant linkage of libnsl.
+#
+# The upstream package looks for gethostbyname_r() in libnsl and links it even
+# though it doesn't export the symbol (that actually is not even used in
+# libmariadb).
+#
+# Note that glibc 2.26 deprecates libnsl and doesn't install it by default, so
+# its linkage just fails.
+#
+#  if ($tclass == 'linux')
+#    c.libs += -lnsl
 
   if ($tclass != 'bsd')
     c.libs += -ldl
