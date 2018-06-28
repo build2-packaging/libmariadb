@@ -13,23 +13,13 @@ lib{mariadb}: zlib/{c}{*                           } \
                    {h}{**                  -version} \
                    {h}{                     version}
 
-# Makes sense to distribute README for the bundled library.
-#
-lib{mariadb}: zlib/file{README}
-
 tclass = $c.target.class
 tsys   = $c.target.system
 
-if ($tclass == 'windows')
-  lib{mariadb}: win-iconv/{h c    }{*            } \
-                  plugins/{  c    }{$pvio_win32  } \
-               libmariadb/{    def}{mariadbclient} # Exports.
-else
-  # Include into the distribution.
-  #
-  lib{mariadb}: win-iconv/file{*.h *.c                                  } \
-                  plugins/file{$regex.apply($pvio_win32, '(.+)', '\1.c')} \
-               libmariadb/file{mariadbclient_win32.def.in}
+windows = ($tclass == 'windows')
+
+lib{mariadb}: win-iconv/{h c    }{*            } \
+                plugins/{  c    }{$pvio_win32  }: include = $windows
 
 # The upstream package, by default, builds without SSL on POSIX systems, and
 # with bundled SSL on Windows. However, it fails to build against MinGW API
@@ -40,12 +30,22 @@ else
 #
 with_ssl = ($tsys == 'win32-msvc')
 
-if $with_ssl
-  lib{mariadb}: libmariadb/{  c}{ma_tls} \
-         libmariadb/secure/{h c}{*     }
-else
-  lib{mariadb}: libmariadb/file{ma_tls.c} \
-         libmariadb/secure/file{*.h *.c }
+lib{mariadb}: libmariadb/{  c}{ma_tls} \
+       libmariadb/secure/{h c}{*     }: include = $with_ssl
+
+# Symbol exporting on Windows is done via the .def file.
+#
+lib{mariadb}: libmariadb/def{mariadbclient}: include = $windows
+
+libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32} \
+                               $src_root/manifest # @@ TMP
+
+libmariadb/def{mariadbclient}: mariadb_deinitialize_ssl = \
+  ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
+
+# Makes sense to distribute README for the bundled library.
+#
+lib{mariadb}: zlib/file{README}
 
 # See bootstrap.build for details.
 #
@@ -80,7 +80,7 @@ h{version}: MARIADB_VERSION_ID =                                       \
   "\(10000 * $version.major + 100 * $version.minor + $version.patch\)"
 h{version}: MYSQL_VERSION_ID = $MARIADB_VERSION_ID
 h{version}: MARIADB_PORT = 3306
-h{version}: MARIADB_UNIX_ADDR = ($tclass != 'windows' ? /tmp/mysql.sock : '')
+h{version}: MARIADB_UNIX_ADDR = ($windows ? '': /tmp/mysql.sock)
 h{version}: CPACK_PACKAGE_VERSION = "$client_major.$client_minor.$client_patch"
 h{version}: MARIADB_PACKAGE_VERSION_ID =                            \
   "\(10000 * $client_major + 100 * $client_minor + $client_patch\)"
@@ -105,21 +105,13 @@ libmariadb/c{ma_client_plugin}: EXTERNAL_PLUGINS = ''
 libmariadb/c{ma_client_plugin}: BUILTIN_PLUGINS = ''
 
 for p: 'pvio_socket' 'native_password_client' 'old_password_client' \
-       ($tclass == 'windows' ? 'pvio_npipe' 'pvio_shmem' : )
+       ($windows ? 'pvio_npipe' 'pvio_shmem' : )
 {
   libmariadb/c{ma_client_plugin}: EXTERNAL_PLUGINS = "$EXTERNAL_PLUGINS
 extern struct st_mysql_client_plugin $(p)_plugin;"
 
   libmariadb/c{ma_client_plugin}: BUILTIN_PLUGINS = "$BUILTIN_PLUGINS
 \(struct st_mysql_client_plugin *\)&$(p)_plugin,"
-}
-
-if ($tclass == 'windows')
-{
-  libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32} \
-                                 $src_root/manifest # @@ TMP
-  libmariadb/def{mariadbclient}: mariadb_deinitialize_ssl =                   \
-                                 ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
 }
 
 # We have dropped the macro definitions that are not used in the package code:
@@ -147,7 +139,7 @@ mariadb_poptions = "-I$out_root" "-I$src_root" "-I$src_base"              \
                    -DHAVE_SOCKET=1 -DHAVE_COMPRESS -DENABLED_LOCAL_INFILE \
                    -DLIBMARIADB -DTHREAD -DLIBICONV_PLUG -DDBUG_OFF
 
-if ($tclass != 'windows')
+if! $windows
 {
   if ($tclass == 'linux')
     mariadb_poptions += -D_GNU_SOURCE
@@ -202,7 +194,7 @@ elif ($c.class == 'gcc')
   c.coptions += -Wno-all -Wno-extra -Wno-error
 }
 
-if ($tclass != 'windows')
+if! $windows
 {
   # On Linux the upstream package also passes the cmake-generated
   # mariadbclient.def version script file. The symbols it contains are
