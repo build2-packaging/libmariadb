@@ -1,9 +1,10 @@
 : 1
 name: libmariadb
 version: 10.2.10+1
+project: mariadb
 summary: MariaDB C API client library
 license: LGPLv2.1
-tags: mariadb, mysql, database, client, connector, library, c, api, interface
+tags: mysql, database, client, connector, library, c, api, interface
 description-file: README
 url: https://mariadb.com
 doc-url: https://mariadb.com/kb/en/library/mariadb-connector-c/
