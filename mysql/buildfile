@@ -37,9 +37,7 @@ lib{mariadb}: libmariadb/{  c}{ma_tls} \
 #
 lib{mariadb}: libmariadb/def{mariadbclient}: include = $windows
 
-libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32} \
-                               $src_root/manifest # @@ TMP
-
+libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32}
 libmariadb/def{mariadbclient}: mariadb_deinitialize_ssl = \
   ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
 
@@ -97,8 +95,7 @@ h{version}: CC_SOURCE_REVISION = ''
 #    generating machinery (this is why the redundant $src_root/manifest
 #    prerequisite).
 #
-libmariadb/c{ma_client_plugin}: libmariadb/in{ma_client_plugin} \
-                                $src_root/manifest # @@ TMP
+libmariadb/c{ma_client_plugin}: libmariadb/in{ma_client_plugin}
 libmariadb/c{ma_client_plugin}: in.symbol = '@'
 libmariadb/c{ma_client_plugin}: in.substitution = lax
 libmariadb/c{ma_client_plugin}: EXTERNAL_PLUGINS = ''
