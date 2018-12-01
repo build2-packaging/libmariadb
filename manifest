@@ -10,8 +10,9 @@ url: https://mariadb.com
 doc-url: https://mariadb.com/kb/en/library/mariadb-connector-c/
 src-url: https://git.build2.org/cgit/packaging/mariadb/libmariadb/tree/
 package-url: https://git.build2.org/cgit/packaging/mariadb/
-email: maria-discuss@lists.launchpad.net; Mailing list.
-package-email: packaging@build2.org; Mailing list.
+email: maria-discuss@lists.launchpad.net ; Mailing list.
+package-email: packaging@build2.org      ; Mailing list.
 build-error-email: builds@build2.org
+#builds: all
 depends: * build2 >= 0.8.0-
 depends: * bpkg >= 0.8.0-
