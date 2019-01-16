@@ -1,6 +1,6 @@
 /*
  * file      : mysql/mariadb_version.h
- * copyright : Copyright (c) 2009-2018 Code Synthesis Tools CC
+ * copyright : Copyright (c) 2009-2019 Code Synthesis Tools CC
  * license   : LGPLv2.1; see accompanying COPYING file
  */
 

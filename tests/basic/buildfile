@@ -1,5 +1,5 @@
 # file      : tests/basic/buildfile
-# copyright : Copyright (c) 2009-2018 Code Synthesis Tools CC
+# copyright : Copyright (c) 2009-2019 Code Synthesis Tools CC
 # license   : LGPLv2.1; see accompanying COPYING file
 
 import libs = libmariadb%lib{mariadb}
