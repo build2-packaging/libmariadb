@@ -195,10 +195,14 @@ if! $windows
   # now.
   #
   if ($tclass == 'linux')
-    c.loptions += -Wl,--no-undefined # Make sure all symbols are resolvable.
+  {
+    # Make sure all symbols are resolvable.
+    #
+    libs{mariadb}: c.loptions += -Wl,--no-undefined
+  }
   elif ($tclass == 'macos')
-    c.loptions += -compatibility_version "$abi_version.0.0" \
-                  -current_version "$abi_version.0.0"
+    libs{mariadb}: c.loptions += -compatibility_version "$abi_version.0.0" \
+                                 -current_version "$abi_version.0.0"
 
   c.libs += -lpthread -lm
 
