@@ -1,6 +1,6 @@
 : 1
 name: libmariadb
-version: 10.2.10+5
+version: 10.2.10+6
 project: mariadb
 summary: MariaDB C API client library
 license: LGPLv2.1
@@ -13,6 +13,6 @@ package-url: https://git.build2.org/cgit/packaging/mariadb/
 email: maria-discuss@lists.launchpad.net ; Mailing list.
 package-email: packaging@build2.org      ; Mailing list.
 build-error-email: builds@build2.org
-#builds: all
-depends: * build2 >= 0.8.0-
-depends: * bpkg >= 0.8.0-
+builds: all
+depends: * build2 >= 0.9.0
+depends: * bpkg >= 0.9.0
