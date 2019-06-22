@@ -1,10 +1,10 @@
 : 1
 name: libmariadb
-version: 10.2.10+6
+version: 10.2.10+7
 project: mariadb
 summary: MariaDB C API client library
 license: LGPLv2.1
-tags: mysql, database, client, connector, library, c, api, interface
+topics: C, MariaDB, MySQL, SQL, relational database
 description-file: README
 url: https://mariadb.com
 doc-url: https://mariadb.com/kb/en/library/mariadb-connector-c/
@@ -14,5 +14,5 @@ email: maria-discuss@lists.launchpad.net ; Mailing list.
 package-email: packaging@build2.org      ; Mailing list.
 build-error-email: builds@build2.org
 builds: all
-depends: * build2 >= 0.9.0
-depends: * bpkg >= 0.9.0
+depends: * build2 >= 0.11.0
+depends: * bpkg >= 0.11.0
