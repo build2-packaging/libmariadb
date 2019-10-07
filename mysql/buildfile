@@ -16,7 +16,16 @@ lib{mariadb}: zlib/{c}{*                           } \
 tclass = $c.target.class
 tsys   = $c.target.system
 
+linux   = ($tclass == 'linux')
+bsd     = ($tclass == 'bsd')
+macos   = ($tclass == 'macos')
 windows = ($tclass == 'windows')
+
+msvc_runtime = ($tsys == 'win32-msvc')
+
+gcc        = ($c.class == 'gcc')
+msvc       = ($c.class == 'msvc')
+clang_msvc = ($c.id == 'clang' && $msvc_runtime)
 
 lib{mariadb}: win-iconv/{h c    }{*            } \
                 plugins/{  c    }{$pvio_win32  }: include = $windows
@@ -28,7 +37,7 @@ lib{mariadb}: win-iconv/{h c    }{*            } \
 #
 # @@ TODO: need to enable SSL by default on POSIX.
 #
-with_ssl = ($tsys == 'win32-msvc')
+with_ssl = $msvc_runtime
 
 lib{mariadb}: libmariadb/{  c}{ma_tls} \
        libmariadb/secure/{h c}{*     }: include = $with_ssl
@@ -146,7 +155,7 @@ mariadb_poptions = "-I$out_root" "-I$src_root" "-I$src_base"              \
 
 if! $windows
 {
-  if ($tclass == 'linux')
+  if $linux
     mariadb_poptions += -D_GNU_SOURCE
 }
 else
@@ -181,13 +190,18 @@ zlib_poptions = "-I$src_base/zlib"
    plugins/ c.poptions =+ $mariadb_poptions
 libmariadb/ c.poptions =+ $mariadb_poptions $zlib_poptions
 
-if ($c.class == 'msvc')
+# Disable the 'POSIX name for this item is deprecated' warnings.
+#
+if $clang_msvc
+  c.coptions += -Wno-deprecated-declarations
+
+if $msvc
 {
   # Disable warnings that pop up with /W3.
   #
   c.coptions += /wd4996 /wd4267
 }
-elif ($c.class == 'gcc')
+elif $gcc
 {
   # Disable warnings that pop up with -Wall -Wextra. Upstream doesn't seem to
   # care about these and it is not easy to disable specific warnings in a way
@@ -206,13 +220,13 @@ if! $windows
   # hard-coded into libmariadb/libmariadb/CMakeList.txt. We drop the file for
   # now.
   #
-  if ($tclass == 'linux')
+  if $linux
   {
     # Make sure all symbols are resolvable.
     #
     libs{mariadb}: c.loptions += -Wl,--no-undefined
   }
-  elif ($tclass == 'macos')
+  elif $macos
     libs{mariadb}: c.loptions += -compatibility_version "$abi_version.0.0" \
                                  -current_version "$abi_version.0.0"
 
@@ -227,21 +241,21 @@ if! $windows
 # Note that glibc 2.26 deprecates libnsl and doesn't install it by default, so
 # its linkage just fails.
 #
-#  if ($tclass == 'linux')
+#  if $linux
 #    c.libs += -lnsl
 
-  if ($tclass != 'bsd')
+  if! $bsd
     c.libs += -ldl
 
-  if ($tclass == 'macos')
+  if $macos
     c.libs += -liconv
 }
 else
   # @@ secur32
   #
-  c.libs += $regex.apply(ws2_32 shlwapi advapi32 version,        \
-                         '(.+)',                                 \
-                         $tsys == 'mingw32' ? '-l\1' : '\1.lib')
+  c.libs += $regex.apply(ws2_32 shlwapi advapi32 version,   \
+                         '(.+)',                            \
+                         $msvc_runtime ? '\1.lib' : '-l\1')
 
 # Export options.
 #
