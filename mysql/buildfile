@@ -16,19 +16,12 @@ lib{mariadb}: zlib/{c}{*                           } \
 tclass = $c.target.class
 tsys   = $c.target.system
 
-linux   = ($tclass == 'linux')
-bsd     = ($tclass == 'bsd')
-macos   = ($tclass == 'macos')
 windows = ($tclass == 'windows')
 
 msvc_runtime = ($tsys == 'win32-msvc')
 
-gcc        = ($c.class == 'gcc')
-msvc       = ($c.class == 'msvc')
-clang_msvc = ($c.id == 'clang' && $msvc_runtime)
-
-lib{mariadb}: win-iconv/{h c    }{*            } \
-                plugins/{  c    }{$pvio_win32  }: include = $windows
+lib{mariadb}: win-iconv/{h c}{*          } \
+                plugins/{  c}{$pvio_win32}: include = $windows
 
 # The upstream package, by default, builds without SSL on POSIX systems, and
 # with bundled SSL on Windows. However, it fails to build against MinGW API
@@ -47,8 +40,9 @@ lib{mariadb}: libmariadb/{  c}{ma_tls} \
 lib{mariadb}: libmariadb/def{mariadbclient}: include = $windows
 
 libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32}
-libmariadb/def{mariadbclient}: mariadb_deinitialize_ssl = \
-  ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
+{
+  mariadb_deinitialize_ssl = ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
+}
 
 # Makes sense to distribute README for the bundled library.
 #
@@ -68,7 +62,6 @@ lib{mariadb}: zlib/file{README}
 #    Source package: /tmp/mysql.sock
 #
 h{version}: in{version} $src_root/manifest
-h{version}:
 {
   dist  = true
   clean = ($src_root != $out_root)
@@ -104,7 +97,6 @@ h{version}:
 }
 
 libmariadb/c{ma_client_plugin}: libmariadb/in{ma_client_plugin}
-libmariadb/c{ma_client_plugin}:
 {
   in.symbol = '@'
   in.substitution = lax
@@ -153,32 +145,33 @@ mariadb_poptions = "-I$out_root" "-I$src_root" "-I$src_base"              \
                    -DHAVE_SOCKET=1 -DHAVE_COMPRESS -DENABLED_LOCAL_INFILE \
                    -DLIBMARIADB -DTHREAD -DLIBICONV_PLUG -DDBUG_OFF
 
-if! $windows
+switch $tclass
 {
-  if $linux
+  case 'linux'
     mariadb_poptions += -D_GNU_SOURCE
-}
-else
-{
-  # Note that the original package defines the WIN32 macro for VC only, relying
-  # on the fact that MinGW GCC defines it by default. However, the macro
-  # disappears from the default ones if to compile with -std=c9x (as we do). So
-  # we define it for both VC and MinGW GCC.
-  #
-  c.poptions += -DWIN32 -D_WINDOWS -D_MBCS
 
-  # Using CancelIoEx() in mysql/plugins/pvio/pvio_socket.c requires at least
-  # Windows Vista/Server 2008 (_WIN32_WINNT >= 0x0600). Note that Windows Kits
-  # (used by VC) default _WIN32_WINNT to the most current version.
-  #
-  c.poptions += -D_WIN32_WINNT=0x0600
+  case 'windows'
+  {
+    # Note that the original package defines the WIN32 macro for VC only,
+    # relying on the fact that MinGW GCC defines it by default. However, the
+    # macro disappears from the default ones if to compile with -std=c9x (as
+    # we do). So we define it for both VC and MinGW GCC.
+    #
+    c.poptions += -DWIN32 -D_WINDOWS -D_MBCS
 
-  # Declaration visibility attribute is not supported.
-  #
-  c.poptions += -DNO_VIZ
+    # Using CancelIoEx() in mysql/plugins/pvio/pvio_socket.c requires at least
+    # Windows Vista/Server 2008 (_WIN32_WINNT >= 0x0600). Note that Windows
+    # Kits (used by VC) default _WIN32_WINNT to the most current version.
+    #
+    c.poptions += -D_WIN32_WINNT=0x0600
 
-  if $with_ssl
-    mariadb_poptions += -DHAVE_SCHANNEL -DHAVE_TLS
+    # Declaration visibility attribute is not supported.
+    #
+    c.poptions += -DNO_VIZ
+
+    if $with_ssl
+      mariadb_poptions += -DHAVE_SCHANNEL -DHAVE_TLS
+  }
 }
 
 zlib_poptions = "-I$src_base/zlib"
@@ -192,70 +185,74 @@ libmariadb/ c.poptions =+ $mariadb_poptions $zlib_poptions
 
 # Disable the 'POSIX name for this item is deprecated' warnings.
 #
-if $clang_msvc
+if ($c.id == 'clang' && $msvc_runtime)
   c.coptions += -Wno-deprecated-declarations
 
-if $msvc
+switch $c.class
 {
-  # Disable warnings that pop up with /W3.
-  #
-  c.coptions += /wd4996 /wd4267
-}
-elif $gcc
-{
-  # Disable warnings that pop up with -Wall -Wextra. Upstream doesn't seem to
-  # care about these and it is not easy to disable specific warnings in a way
-  # that works across compilers/version (some -Wno-* options are only
-  # recognized in newer versions). There are still some warnings left that
-  # appear for certain platforms/compilers. We pass them through but disable
-  # treating them as errors.
-  #
-  c.coptions += -Wno-all -Wno-extra -Wno-error
+  case 'gcc'
+  {
+    # Disable warnings that pop up with -Wall -Wextra. Upstream doesn't seem
+    # to care about these and it is not easy to disable specific warnings in a
+    # way that works across compilers/version (some -Wno-* options are only
+    # recognized in newer versions). There are still some warnings left that
+    # appear for certain platforms/compilers. We pass them through but disable
+    # treating them as errors.
+    #
+    c.coptions += -Wno-all -Wno-extra -Wno-error
+  }
+  case 'msvc'
+  {
+    # Disable warnings that pop up with /W3.
+    #
+    c.coptions += /wd4996 /wd4267
+  }
 }
 
-if! $windows
+switch $tclass, $tsys
 {
-  # On Linux the upstream package also passes the cmake-generated
-  # mariadbclient.def version script file. The symbols it contains are
-  # hard-coded into libmariadb/libmariadb/CMakeList.txt. We drop the file for
-  # now.
-  #
-  if $linux
+  case 'windows', 'mingw32'
+    cc.libs += -lws2_32 -lshlwapi -ladvapi32 -lversion # @@ secur32
+
+  case 'windows'
+    cc.libs += ws2_32.lib shlwapi.lib advapi32.lib version.lib
+
+  case 'linux'
   {
+    # The upstream package also passes the cmake-generated mariadbclient.def
+    # version script file. The symbols it contains are hard-coded into
+    # libmariadb/libmariadb/CMakeList.txt. We drop the file for now.
+    #
     # Make sure all symbols are resolvable.
     #
-    libs{mariadb}: c.loptions += -Wl,--no-undefined
+    c.loptions += -Wl,--no-undefined
+
+    # Drop the redundant linkage of libnsl.
+    #
+    # The upstream package looks for gethostbyname_r() in libnsl and links it
+    # even though it doesn't export the symbol (that actually is not even used
+    # in libmariadb).
+    #
+    # Note that glibc 2.26 deprecates libnsl and doesn't install it by
+    # default, so its linkage just fails.
+    #
+    c.libs += -lpthread -lm -ldl # -lnsl
   }
-  elif $macos
-    libs{mariadb}: c.loptions += -compatibility_version "$abi_version.0.0" \
-                                 -current_version "$abi_version.0.0"
 
-  c.libs += -lpthread -lm
+  case 'bsd'
+    c.libs += -lpthread -lm
 
-# Drop the redundant linkage of libnsl.
-#
-# The upstream package looks for gethostbyname_r() in libnsl and links it even
-# though it doesn't export the symbol (that actually is not even used in
-# libmariadb).
-#
-# Note that glibc 2.26 deprecates libnsl and doesn't install it by default, so
-# its linkage just fails.
-#
-#  if $linux
-#    c.libs += -lnsl
+  case 'macos'
+  {
+    c.loptions += -compatibility_version "$abi_version.0.0" \
+                  -current_version "$abi_version.0.0"
 
-  if! $bsd
-    c.libs += -ldl
+    c.libs += -lpthread -lm -ldl -liconv
+  }
 
-  if $macos
-    c.libs += -liconv
+  default
+    c.libs += -lpthread -lm -ldl
 }
-else
-  # @@ secur32
-  #
-  c.libs += $regex.apply(ws2_32 shlwapi advapi32 version,   \
-                         '(.+)',                            \
-                         $msvc_runtime ? '\1.lib' : '-l\1')
 
 # Export options.
 #

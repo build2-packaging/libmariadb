@@ -1,6 +1,6 @@
 : 1
 name: libmariadb
-version: 10.2.10+8
+version: 10.2.10+9
 project: mariadb
 summary: MariaDB C API client library
 license: LGPLv2.1
