@@ -2,16 +2,18 @@
 # copyright : Copyright (c) 2016-2019 Code Synthesis Ltd
 # license   : LGPLv2.1; see accompanying COPYING file
 
+import imp_libs = libz%lib{z}
+
 # Windows-specific named pipe and shared memory based communication plugins.
 #
 pvio_win32 = pvio/pvio_npipe pvio/pvio_shmem
 
-lib{mariadb}: zlib/{c}{*                           } \
-           plugins/{c}{**            -{$pvio_win32}} \
-        libmariadb/{c}{*  -ma_tls -ma_client_plugin} \
-        libmariadb/{c}{            ma_client_plugin} \
-                   {h}{**                  -version} \
-                   {h}{                     version}
+lib{mariadb}: {h}{**                  -version} \
+              {h}{                     version} \
+      plugins/{c}{**            -{$pvio_win32}} \
+   libmariadb/{c}{*  -ma_tls -ma_client_plugin} \
+   libmariadb/{c}{            ma_client_plugin} \
+              $imp_libs
 
 tclass = $c.target.class
 tsys   = $c.target.system
@@ -43,10 +45,6 @@ libmariadb/def{mariadbclient}: libmariadb/in{mariadbclient_win32}
 {
   mariadb_deinitialize_ssl = ($with_ssl ? 'mariadb_deinitialize_ssl' : '')
 }
-
-# Makes sense to distribute README for the bundled library.
-#
-lib{mariadb}: zlib/file{README}
 
 # Include the generated version header into the distribution (so that we don't
 # pick up an installed one) and don't remove it when cleaning in src (so that
@@ -174,19 +172,11 @@ switch $tclass
   }
 }
 
-zlib_poptions = "-I$src_base/zlib"
-
 # Note that the bundled win-iconv header is included as a quoted (relative)
 # path, so no need for -I option.
 #
-      zlib/ c.poptions =+ $zlib_poptions
    plugins/ c.poptions =+ $mariadb_poptions
-libmariadb/ c.poptions =+ $mariadb_poptions $zlib_poptions
-
-# Disable the 'POSIX name for this item is deprecated' warnings.
-#
-if ($c.id == 'clang' && $msvc_runtime)
-  c.coptions += -Wno-deprecated-declarations
+libmariadb/ c.poptions =+ $mariadb_poptions
 
 switch $c.class
 {
@@ -200,6 +190,11 @@ switch $c.class
     # treating them as errors.
     #
     c.coptions += -Wno-all -Wno-extra -Wno-error
+
+    # Disable the Clang targeting MSVC warnings.
+    #
+    if ($c.id == 'clang' && $msvc_runtime)
+      c.coptions += -Wno-deprecated-declarations
   }
   case 'msvc'
   {

@@ -1,6 +1,6 @@
 : 1
 name: libmariadb
-version: 10.2.10+10
+version: 10.2.10+11
 project: mariadb
 summary: MariaDB C API client library
 license: LGPLv2.1
@@ -16,3 +16,4 @@ build-error-email: builds@build2.org
 builds: all
 depends: * build2 >= 0.12.0
 depends: * bpkg >= 0.12.0
+depends: libz >= 1.2.1100

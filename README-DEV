@@ -12,48 +12,44 @@ reporting unresolved symbols. We balance between keeping the upstream package
 directory structure and making sure that the library can be properly imported
 into a build2 projects. Below are the packaging steps in more detail.
 
-1. Recursively copy headers from libmariadb/include/ to mysql/.
+- Recursively copy headers from libmariadb/include/ to mysql/.
 
-2. Copy source files from libmariadb/zlib/ to mysql/zlib/, excluding examples
-   (minigzip.c and example.c). This is a bundled third-party library, so copy
-   README as well.
+- Copy source files from libmariadb/win-iconv/ to mysql/win-iconv, except
+  mlang.h.
 
-3. Copy source files from libmariadb/win-iconv/ to mysql/win-iconv, except
-   mlang.h.
+- Recursively copy static plugins source files from libmariadb/plugins to
+  mysql/plugins.
 
-4. Recursively copy static plugins source files from libmariadb/plugins to
-   mysql/plugins.
+- Recursively copy source and template files from libmariadb/libmariadb/ to
+  mysql/libmariadb/, except bmove_upp.c, get_password.c, secure/gnutls.c and
+  secure/openssl.c.
 
-5. Recursively copy source and template files from libmariadb/libmariadb/ to
-   mysql/libmariadb/, except bmove_upp.c, get_password.c, secure/gnutls.c and
-   secure/openssl.c.
+- Copy libmariadb/include/mariadb_version.h.in to mysql/version.h.in, and
+  create mysql/mariadb_version.h that includes <mysql/version.h>.
 
-6. Copy libmariadb/include/mariadb_version.h.in to mysql/version.h.in, and
-   create mysql/mariadb_version.h that includes <mysql/version.h>.
+  Also we need to workaround MinGW __stdcall issue for 32 bit targets, adding
+  some additional code to mysql/mariadb_version.h.
 
-   Also we need to workaround MinGW __stdcall issue for 32 bit targets, adding
-   some additional code to mysql/mariadb_version.h.
+- Copy libmariadb/include/ma_config.h.in to mysql/ma_config.h.in.orig, and use
+  it for creating mysql/ma_config.h manually, defining/undefining only those
+  macros that are used in the library source code (see below).
 
-7. Copy libmariadb/include/ma_config.h.in to mysql/ma_config.h.in.orig, and use
-   it for creating mysql/ma_config.h manually, defining/undefining only those
-   macros that are used in the library source code (see below).
+- Create mysql/libmariadb/mariadbclient_win32.def.in to contain a list of the
+  exported names. For that purpose grep through
+  libmariadb/libmariadb/CMakeLists.txt to see how the mariadbclient.def file
+  is generated for Windows. The corresponding code normally looks like
 
-8. Create mysql/libmariadb/mariadbclient_win32.def.in to contain a list of the
-   exported names. For that purpose grep through
-   libmariadb/libmariadb/CMakeLists.txt to see how the mariadbclient.def file
-   is generated for Windows. The corresponding code normally looks like
-
-   CREATE_EXPORT_FILE(WRITE mariadbclient.def
+  CREATE_EXPORT_FILE(WRITE mariadbclient.def
                     "libmariadb_3"
                     "${MARIADB_LIB_SYMBOLS};${MYSQL_LIB_SYMBOLS}"
                     "")
 
-    If that's the case, collect names that get appended to the
-    MARIADB_LIB_SYMBOLS and MYSQL_LIB_SYMBOLS variables as if all IF() clauses
-    are executed. Replace mariadb_deinitialize_ssl name with
-    $mariadb_deinitialize_ssl$ (see mysql/buildfile for details).
+  If that's the case, collect names that get appended to the
+  MARIADB_LIB_SYMBOLS and MYSQL_LIB_SYMBOLS variables as if all IF() clauses
+  are executed. Replace mariadb_deinitialize_ssl name with
+  $mariadb_deinitialize_ssl$ (see mysql/buildfile for details).
 
-9. Copy libmariadb/COPYING.LIB to COPYING.
+- Copy libmariadb/COPYING.LIB to COPYING.
 
 When merge libmariadb build2 package with a new version of the upstream package
 make sure that all the preprocessor include directives reference the packaged
@@ -67,7 +63,7 @@ Afterwards grep through the remained headers for some patterns:
 
 $ cat `find . -name '*.d'` | sort -u >headers
 $ emacs headers  # Edit, leaving system headers only.
-$ fgrep -e 'mysql' -e 'mariadb' -e 'zlib' headers
+$ fgrep -e 'mysql' -e 'mariadb' headers
 
 Also make sure that the macros set in mysql/ma_config.h is still up to date.
 For that purpose obtain the macros that are used in the new source base, then
