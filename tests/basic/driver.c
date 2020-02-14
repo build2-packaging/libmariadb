@@ -1,6 +1,5 @@
 /*
  * file      : tests/basic/driver.c
- * copyright : Copyright (c) 2009-2019 Code Synthesis Tools CC
  * license   : LGPLv2.1; see accompanying COPYING file
  */
 

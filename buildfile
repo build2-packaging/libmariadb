@@ -1,5 +1,4 @@
 # file      : buildfile
-# copyright : Copyright (c) 2016-2019 Code Synthesis Ltd
 # license   : LGPLv2.1; see accompanying COPYING file
 
 ./: {*/ -build/} doc{COPYING INSTALL README} manifest
